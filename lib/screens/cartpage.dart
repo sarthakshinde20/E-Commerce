@@ -47,14 +47,14 @@ class _CartPageState extends State<CartPage> {
                         margin:
                             EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                         child: ListTile(
-                          leading: Image.network(
+                          leading: Image.asset(
                             item['image'],
                             width: 50,
                             height: 50,
                             fit: BoxFit.cover,
                           ),
                           title: Text(item['name']),
-                          subtitle: Text('Price: \$${item['price']}'),
+                          subtitle: Text('Price: \₹${item['price']}'),
                           trailing: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
@@ -92,7 +92,7 @@ class _CartPageState extends State<CartPage> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Total: \$${totalAmount.toStringAsFixed(2)}',
+                        'Total: \₹${totalAmount.toStringAsFixed(2)}',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
