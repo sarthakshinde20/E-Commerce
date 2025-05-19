@@ -47,42 +47,37 @@ class _HomePageState extends State<HomePage> {
   ];
 
   final List<Map<String, dynamic>> cartItems = [];
-
-  // Keeps track of quantity per product
   final Map<int, int> productQuantities = {};
+  final Set<int> addedToCartIndexes = {};
 
-  void addToCart(Map<String, String> product, int quantity) {
-    setState(() {
-      cartItems.add({...product, 'quantity': quantity});
-    });
+  void updateCartQuantity(int index) {
+    String name = products[index]['name']!;
+    int quantity = productQuantities[index] ?? 0;
 
-    // Show confirmation dialog instead of snackbar
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Item Added"),
-        content: Text(
-            "${product['name']} (x$quantity) has been added to your cart."),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("OK"),
-          )
-        ],
-      ),
-    );
+    for (var item in cartItems) {
+      if (item['name'] == name) {
+        item['quantity'] = quantity;
+        break;
+      }
+    }
   }
 
   void increaseQuantity(int index) {
     setState(() {
       productQuantities[index] = (productQuantities[index] ?? 1) + 1;
+      if (addedToCartIndexes.contains(index)) {
+        updateCartQuantity(index);
+      }
     });
   }
 
   void decreaseQuantity(int index) {
     setState(() {
-      if ((productQuantities[index] ?? 1) > 1) {
+      if ((productQuantities[index] ?? 1) > 0) {
         productQuantities[index] = productQuantities[index]! - 1;
+        if (addedToCartIndexes.contains(index)) {
+          updateCartQuantity(index);
+        }
       }
     });
   }
@@ -104,123 +99,79 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
         ),
-        actions: [
-          Stack(
-            alignment: Alignment.center,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.shopping_cart),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => CartPage(cartItems: cartItems)),
-                  );
-                },
-              ),
-              if (cartItems.isNotEmpty)
-                Positioned(
-                  right: 10,
-                  top: 0,
-                  child: Container(
-                    padding: const EdgeInsets.all(2),
-                    decoration: BoxDecoration(
-                      color: Colors.red,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    constraints:
-                        const BoxConstraints(minWidth: 15, minHeight: 15),
-                    child: Text(
-                      '${cartItems.length}',
-                      style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        ],
       ),
       body: Container(
         color: Colors.grey[100],
         padding: const EdgeInsets.all(12),
         child: GridView.builder(
-            itemCount: products.length,
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-              childAspectRatio: 3 / 5,
-            ),
-            itemBuilder: (context, index) {
-              // ... inside itemBuilder
-              final product = products[index];
-              final quantity = productQuantities[index] ?? 0;
+          itemCount: products.length,
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            childAspectRatio: 3 / 5,
+          ),
+          itemBuilder: (context, index) {
+            final product = products[index];
+            final quantity = productQuantities[index] ?? 0;
+            final isInCart = addedToCartIndexes.contains(index);
 
-              return Card(
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15)),
-                elevation: 4,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ProductPage(
-                                product: product,
-                                cartItems: cartItems,
-                              ),
+            return Card(
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15)),
+              elevation: 4,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ProductPage(
+                              product: product,
+                              cartItems: cartItems,
                             ),
-                          );
-                        },
-                        child: ClipRRect(
-                          borderRadius: const BorderRadius.vertical(
-                              top: Radius.circular(15)),
-                          child:
-                              Image.asset(product['image']!, fit: BoxFit.cover),
-                        ),
+                          ),
+                        );
+                      },
+                      child: ClipRRect(
+                        borderRadius: const BorderRadius.vertical(
+                            top: Radius.circular(15)),
+                        child:
+                            Image.asset(product['image']!, fit: BoxFit.cover),
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(product['name']!,
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 16)),
-                          const SizedBox(height: 5),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(product['short description']!,
-                                  style: const TextStyle(fontSize: 14)),
-                              Text(product['price']!,
-                                  style: const TextStyle(
-                                      color: Colors.green,
-                                      fontWeight: FontWeight.bold)),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          // Quantity Row
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(product['name']!,
+                            style: const TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 16)),
+                        const SizedBox(height: 5),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(product['short description']!,
+                                style: const TextStyle(fontSize: 14)),
+                            Text(product['price']!,
+                                style: const TextStyle(
+                                    color: Colors.green,
+                                    fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        if (quantity > 0)
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               IconButton(
                                 icon: const Icon(Icons.remove_circle_outline),
-                                onPressed: () {
-                                  setState(() {
-                                    if (quantity > 1)
-                                      productQuantities[index] = quantity - 1;
-                                  });
-                                },
+                                onPressed: () => decreaseQuantity(index),
                               ),
                               Text('$quantity',
                                   style: const TextStyle(
@@ -228,14 +179,28 @@ class _HomePageState extends State<HomePage> {
                               IconButton(
                                 icon: const Icon(Icons.add_circle_outline),
                                 onPressed: () {
-                                  setState(() {
-                                    productQuantities[index] = quantity + 1;
-                                  });
+                                  increaseQuantity(index);
+                                  // If product not in cart yet, add it when quantity is increased from 0
+                                  if (!addedToCartIndexes.contains(index)) {
+                                    final cartItem = {
+                                      'name': product['name'],
+                                      'image': product['image'],
+                                      'price': double.parse(product['price']!
+                                          .replaceAll('₹', '')
+                                          .replaceAll('\u20B9', '')),
+                                      'quantity': productQuantities[index],
+                                    };
+
+                                    setState(() {
+                                      cartItems.add(cartItem);
+                                      addedToCartIndexes.add(index);
+                                    });
+                                  }
                                 },
                               ),
                             ],
-                          ),
-                          // Add to Cart Button
+                          )
+                        else
                           SizedBox(
                             width: double.infinity,
                             child: ElevatedButton(
@@ -246,25 +211,27 @@ class _HomePageState extends State<HomePage> {
                                   'price': double.parse(product['price']!
                                       .replaceAll('₹', '')
                                       .replaceAll('\u20B9', '')),
-                                  'quantity': quantity,
+                                  'quantity': 1,
                                 };
 
                                 setState(() {
                                   cartItems.add(cartItem);
+                                  productQuantities[index] = 1;
+                                  addedToCartIndexes.add(index);
                                 });
 
-                                // Show dialog confirmation
                                 showDialog(
                                   context: context,
                                   builder: (context) => AlertDialog(
                                     title: const Text("Item Added"),
                                     content: Text(
-                                        "${product['name']} (x$quantity) has been added to your cart."),
+                                        "${product['name']} (x1) has been added to your cart."),
                                     actions: [
                                       TextButton(
-                                        onPressed: () => Navigator.pop(context),
+                                        onPressed: () =>
+                                            Navigator.of(context).pop(),
                                         child: const Text("OK"),
-                                      ),
+                                      )
                                     ],
                                   ),
                                 );
@@ -274,18 +241,65 @@ class _HomePageState extends State<HomePage> {
                                 shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(10)),
                               ),
-                              child: const Text('Add to Cart',
-                                  style: TextStyle(color: Colors.white)),
+                              child: const Text(
+                                'Add to Cart',
+                                style: TextStyle(color: Colors.white),
+                              ),
                             ),
                           ),
-                        ],
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+      ),
+      floatingActionButton: (cartItems.length > 0)
+          ? Stack(
+              clipBehavior: Clip.none,
+              children: [
+                FloatingActionButton(
+                  backgroundColor: const Color.fromARGB(255, 125, 206, 127),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => CartPage(
+                          cartItems: cartItems,
+                          onCartUpdated: () {
+                            setState(
+                                () {}); // refresh UI, including FAB visibility
+                          },
+                        ),
+                      ),
+                    );
+                  },
+                  child: const Icon(Icons.shopping_cart),
+                ),
+                Positioned(
+                  right: -5,
+                  top: -6,
+                  child: Container(
+                    padding: const EdgeInsets.all(5),
+                    decoration: const BoxDecoration(
+                      color: Colors.red,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Text(
+                      '${cartItems.length}',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                  ],
+                  ),
                 ),
-              );
-            }),
-      ),
+              ],
+            )
+          : null,
     );
   }
 }

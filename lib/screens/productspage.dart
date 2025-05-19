@@ -44,8 +44,13 @@ class _ProductPageState extends State<ProductPage> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) =>
-                          CartPage(cartItems: widget.cartItems),
+                      builder: (context) => CartPage(
+                        cartItems: widget.cartItems,
+                        onCartUpdated: () {
+                          setState(
+                              () {}); // refresh UI, including FAB visibility
+                        },
+                      ),
                     ),
                   );
                 },
@@ -190,8 +195,13 @@ class _ProductPageState extends State<ProductPage> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) =>
-                              CartPage(cartItems: widget.cartItems),
+                          builder: (context) => CartPage(
+                            cartItems: widget.cartItems,
+                            onCartUpdated: () {
+                              setState(
+                                  () {}); // refresh UI, including FAB visibility
+                            },
+                          ),
                         ),
                       );
                     },

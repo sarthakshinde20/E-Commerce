@@ -3,8 +3,9 @@ import 'package:flutter/material.dart';
 
 class CartPage extends StatefulWidget {
   final List<Map<String, dynamic>> cartItems;
+  final VoidCallback onCartUpdated;
 
-  CartPage({required this.cartItems});
+  CartPage({required this.cartItems, required this.onCartUpdated});
 
   @override
   _CartPageState createState() => _CartPageState();
